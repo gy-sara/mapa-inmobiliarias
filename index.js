@@ -1,11 +1,10 @@
 const express = require('express');
 const path = require('path');
-
 const app = express();
 const PORT = process.env.PORT || 3000;
 const N8N_ENDPOINT = 'https://app.garantiaya.com.ar/webhook/mapa-inmobiliarias';
 
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'dist')));
 
 app.get('/api/datos', async (req, res) => {
   try {
@@ -18,6 +17,6 @@ app.get('/api/datos', async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`Servidor corriendo en http://localhost:${PORT}`);
-});
+app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'dist', 'index.html')));
+
+app.listen(PORT, () => console.log(`Servidor corriendo en http://localhost:${PORT}`));
