@@ -56,15 +56,13 @@
     align-items: center;
     gap: 10px;
   }
-  .logo-dot {
-    width: 8px; height: 8px;
-    background: var(--accent);
-    border-radius: 50%;
-    animation: pulse 2s ease-in-out infinite;
-  }
-  @keyframes pulse {
-    0%,100% { opacity:1; transform:scale(1); }
-    50% { opacity:.5; transform:scale(1.4); }
+  .logo-img {
+    width: 32px;
+    height: 32px;
+    border-radius: 7px;
+    object-fit: contain;
+    background: white;
+    padding: 2px;
   }
 
   .header-stats {
@@ -108,12 +106,18 @@
     flex: 1;
     max-width: 260px;
   }
+  .select-label {
+    font-size: 10px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    margin-bottom: 4px;
+  }
   .select-wrap::after {
     content: '▾';
     position: absolute;
     right: 12px;
-    top: 50%;
-    transform: translateY(-50%);
+    bottom: 10px;
     color: var(--text-muted);
     pointer-events: none;
     font-size: 11px;
@@ -147,6 +151,8 @@
     cursor: pointer;
     transition: all .15s;
     white-space: nowrap;
+    align-self: flex-end;
+    margin-bottom: 0;
   }
   .btn-clear:hover { border-color: var(--accent); color: var(--accent2); }
 
@@ -176,12 +182,8 @@
   }
 
   /* ── MAP ── */
-  #map {
-    flex: 1;
-    height: 100%;
-  }
+  #map { flex: 1; height: 100%; }
 
-  /* Google Maps style overrides */
   .gm-style .gm-style-iw-c {
     background: var(--surface2) !important;
     border: 1px solid var(--border) !important;
@@ -205,11 +207,7 @@
     margin-bottom: 4px;
     line-height: 1.3;
   }
-  .info-popup .info-meta {
-    font-size: 11px;
-    color: var(--text-muted);
-    margin-bottom: 8px;
-  }
+  .info-popup .info-meta { font-size: 11px; color: var(--text-muted); margin-bottom: 8px; }
   .info-badge {
     display: inline-flex;
     align-items: center;
@@ -222,24 +220,6 @@
     color: var(--accent2);
     margin-bottom: 8px;
   }
-  .info-popup .btn-view {
-    display: block;
-    width: 100%;
-    padding: 7px;
-    background: var(--accent);
-    border: none;
-    border-radius: 6px;
-    color: white;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 12px;
-    font-weight: 500;
-    cursor: pointer;
-    text-align: center;
-    text-decoration: none;
-    margin-top: 8px;
-    transition: background .15s;
-  }
-  .info-popup .btn-view:hover { background: var(--accent2); }
 
   /* ── SIDE PANEL ── */
   .panel {
@@ -250,10 +230,7 @@
     flex-direction: column;
     overflow: hidden;
     flex-shrink: 0;
-    transform: translateX(0);
-    transition: transform .3s ease;
   }
-  .panel.hidden { transform: translateX(100%); width: 0; border: none; }
 
   .panel-header {
     padding: 16px 20px 12px;
@@ -275,149 +252,225 @@
   .panel-body {
     flex: 1;
     overflow-y: auto;
-    padding: 12px;
+    padding: 14px;
     scrollbar-width: thin;
     scrollbar-color: var(--surface2) transparent;
   }
   .panel-body::-webkit-scrollbar { width: 4px; }
   .panel-body::-webkit-scrollbar-thumb { background: var(--surface2); border-radius: 4px; }
 
-  /* ── INMO CARD ── */
-  .inmo-card {
+  /* ── PANEL FADE ── */
+  .panel-fade-in {
+    animation: fadeIn .25s ease;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── WELCOME PANEL ── */
+  .live-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    background: rgba(78,203,138,.1);
+    border: 1px solid rgba(78,203,138,.2);
+    border-radius: 20px;
+    font-size: 11px;
+    color: var(--success);
+    font-weight: 500;
+    margin-bottom: 16px;
+  }
+  .live-dot {
+    width: 6px; height: 6px;
+    background: var(--success);
+    border-radius: 50%;
+    animation: livePulse 1.5s ease-in-out infinite;
+  }
+  @keyframes livePulse {
+    0%,100% { opacity:1; box-shadow: 0 0 0 0 rgba(78,203,138,.4); }
+    50% { opacity:.7; box-shadow: 0 0 0 4px rgba(78,203,138,0); }
+  }
+
+  .welcome-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+  .ws-card {
     background: var(--surface2);
     border: 1px solid var(--border);
     border-radius: 10px;
-    padding: 12px;
-    margin-bottom: 8px;
-    cursor: pointer;
-    transition: all .15s;
-    position: relative;
-    overflow: hidden;
+    padding: 12px 10px;
+    text-align: center;
+    cursor: default;
+    transition: border-color .2s;
   }
-  .inmo-card::before {
-    content: '';
-    position: absolute;
-    left: 0; top: 0; bottom: 0;
-    width: 3px;
-    background: var(--accent);
-    opacity: 0;
-    transition: opacity .15s;
+  .ws-card:hover { border-color: rgba(91,106,247,.4); }
+  .ws-val {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--accent2);
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
   }
-  .inmo-card:hover { border-color: rgba(255,255,255,0.13); transform: translateY(-1px); }
-  .inmo-card:hover::before { opacity: 1; }
+  .ws-label {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+  }
 
-  .inmo-name {
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--text);
-    line-height: 1.4;
-    margin-bottom: 5px;
-  }
-  .inmo-row {
+  .section-title {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    margin-bottom: 10px;
     display: flex;
     align-items: center;
-    gap: 5px;
-    font-size: 11px;
-    color: var(--text-muted);
-    margin-bottom: 3px;
-    line-height: 1.3;
+    gap: 8px;
   }
-  .inmo-row span { color: var(--text-muted); }
-  .inmo-row .val { color: var(--text); }
-  .inmo-tag {
-    display: inline-block;
-    padding: 2px 7px;
-    border-radius: 10px;
-    font-size: 10px;
-    font-weight: 500;
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
   }
-  .inmo-tag.recent { background: rgba(78,203,138,.12); color: var(--success); }
-  .inmo-tag.old { background: rgba(240,101,101,.10); color: var(--danger); }
-  .inmo-tag.mid { background: rgba(232,201,126,.10); color: var(--gold); }
 
-  .inmo-footer {
+  /* Quick chips */
+  .quick-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 20px;
+  }
+  .chip {
+    padding: 5px 12px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all .15s;
+    white-space: nowrap;
+  }
+  .chip:hover {
+    background: rgba(91,106,247,.15);
+    border-color: rgba(91,106,247,.4);
+    color: var(--accent2);
+    transform: translateY(-1px);
+  }
+  .chip.caba {
+    background: rgba(91,106,247,.12);
+    border-color: rgba(91,106,247,.35);
+    color: var(--accent2);
+  }
+
+  /* Top zonas */
+  .top-zonas-list { margin-bottom: 20px; }
+  .top-zona-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 0;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: background .15s;
+    padding: 6px 8px;
+    margin: 0 -8px;
+  }
+  .top-zona-item:hover { background: var(--surface2); }
+  .tz-rank {
+    font-size: 10px;
+    color: var(--text-muted);
+    width: 14px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+  .tz-name {
+    font-size: 12px;
+    color: var(--text);
+    width: 120px;
+    flex-shrink: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .tz-bar-wrap {
+    flex: 1;
+    height: 4px;
+    background: rgba(255,255,255,.06);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .tz-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 2px;
+    width: 0;
+    transition: width 1s cubic-bezier(.16,1,.3,1);
+  }
+  .tz-count {
+    font-size: 11px;
+    color: var(--accent2);
+    font-weight: 600;
+    width: 28px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  /* Activity feed */
+  .activity-list { display: flex; flex-direction: column; gap: 1px; }
+  .activity-item {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-top: 8px;
-    padding-top: 8px;
-    border-top: 1px solid var(--border);
-  }
-  .inmo-footer a {
-    font-size: 11px;
-    color: var(--accent2);
-    text-decoration: none;
-    font-weight: 500;
-  }
-  .inmo-footer a:hover { text-decoration: underline; }
-  .inmo-footer .date-badge {
-    font-size: 10px;
-    color: var(--text-muted);
-  }
-
-  /* ── EMPTY STATE ── */
-  .empty-state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    text-align: center;
-    padding: 40px 20px;
-    gap: 12px;
-  }
-  .empty-icon {
-    font-size: 36px;
-    opacity: .3;
-  }
-  .empty-title {
-    font-size: 15px;
-    font-weight: 500;
-    color: var(--text);
-  }
-  .empty-desc {
-    font-size: 12px;
-    color: var(--text-muted);
-    line-height: 1.5;
-  }
-
-  /* ── ZONA SUMMARY ── */
-  .zona-summary {
-    background: linear-gradient(135deg, rgba(91,106,247,.1), rgba(91,106,247,.04));
-    border: 1px solid rgba(91,106,247,.2);
-    border-radius: 10px;
-    padding: 14px;
-    margin-bottom: 12px;
-  }
-  .zona-name {
-    font-family: 'DM Serif Display', serif;
-    font-size: 16px;
-    color: var(--text);
-    margin-bottom: 10px;
-  }
-  .zona-stats {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-  }
-  .zona-stat {
-    background: rgba(255,255,255,.04);
-    border-radius: 7px;
     padding: 8px 10px;
+    background: var(--surface2);
+    border-radius: 7px;
+    margin-bottom: 4px;
+    transition: background .15s;
   }
-  .zona-stat-val {
-    font-size: 18px;
-    font-weight: 600;
-    color: var(--accent2);
-    line-height: 1;
+  .activity-item:hover { background: rgba(91,106,247,.08); }
+  .ai-left { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .ai-name {
+    font-size: 12px;
+    color: var(--text);
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
-  .zona-stat-label {
+  .ai-city {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+  .ai-days {
     font-size: 10px;
     color: var(--text-muted);
-    margin-top: 3px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin-left: 8px;
   }
+  .ai-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-right: 6px;
+  }
+  .ai-dot.recent { background: var(--success); }
+  .ai-dot.mid    { background: var(--gold); }
+  .ai-dot.old    { background: var(--danger); }
 
-  /* Search box in panel */
+  /* ── INMO CARDS ── */
   .panel-search {
     padding: 10px 12px;
     border-bottom: 1px solid var(--border);
@@ -440,13 +493,82 @@
   .panel-search input::placeholder { color: var(--text-muted); }
   .search-icon {
     position: absolute;
-    left: 22px;
-    top: 50%;
+    left: 22px; top: 50%;
     transform: translateY(-50%);
     color: var(--text-muted);
     font-size: 13px;
     pointer-events: none;
   }
+
+  .inmo-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all .15s;
+    position: relative;
+    overflow: hidden;
+  }
+  .inmo-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--accent);
+    opacity: 0;
+    transition: opacity .15s;
+  }
+  .inmo-card:hover { border-color: rgba(255,255,255,0.13); transform: translateY(-1px); }
+  .inmo-card:hover::before { opacity: 1; }
+  .inmo-name { font-size: 12px; font-weight: 500; color: var(--text); line-height: 1.4; margin-bottom: 5px; }
+  .inmo-row {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 11px; color: var(--text-muted); margin-bottom: 3px; line-height: 1.3;
+  }
+  .inmo-row .val { color: var(--text); }
+  .inmo-tag {
+    display: inline-block;
+    padding: 2px 7px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 500;
+  }
+  .inmo-tag.recent { background: rgba(78,203,138,.12); color: var(--success); }
+  .inmo-tag.old    { background: rgba(240,101,101,.10); color: var(--danger); }
+  .inmo-tag.mid    { background: rgba(232,201,126,.10); color: var(--gold); }
+
+  .inmo-footer {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-top: 8px; padding-top: 8px;
+    border-top: 1px solid var(--border);
+  }
+  .inmo-footer a { font-size: 11px; color: var(--accent2); text-decoration: none; font-weight: 500; }
+  .inmo-footer a:hover { text-decoration: underline; }
+  .inmo-footer .date-badge { font-size: 10px; color: var(--text-muted); }
+
+  .zona-summary {
+    background: linear-gradient(135deg, rgba(91,106,247,.1), rgba(91,106,247,.04));
+    border: 1px solid rgba(91,106,247,.2);
+    border-radius: 10px;
+    padding: 14px;
+    margin-bottom: 12px;
+  }
+  .zona-name { font-family: 'DM Serif Display', serif; font-size: 16px; color: var(--text); margin-bottom: 10px; }
+  .zona-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .zona-stat { background: rgba(255,255,255,.04); border-radius: 7px; padding: 8px 10px; }
+  .zona-stat-val { font-size: 18px; font-weight: 600; color: var(--accent2); line-height: 1; }
+  .zona-stat-label { font-size: 10px; color: var(--text-muted); margin-top: 3px; }
+
+  .empty-state {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; height: 100%; text-align: center;
+    padding: 40px 20px; gap: 12px;
+  }
+  .empty-icon { font-size: 36px; opacity: .3; }
+  .empty-title { font-size: 15px; font-weight: 500; color: var(--text); }
+  .empty-desc { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
 
   @media (max-width: 768px) {
     :root { --panel-w: 100vw; }
@@ -461,7 +583,7 @@
 
 <header>
   <div class="logo">
-    <div class="logo-dot"></div>
+    <img class="logo-img" src="https://firebasestorage.googleapis.com/v0/b/storage-files-b4831.appspot.com/o/isologo_color_positivo%20(1).jpg?alt=media&token=ab83edb4-0bc0-42cb-b320-a236cc6d2952" alt="GarantíaYa">
     GarantíaYa <span style="color:var(--text-muted);font-size:13px;font-weight:300">/ Mapa Comercial</span>
   </div>
   <div class="header-stats">
@@ -478,11 +600,13 @@
 
 <div class="controls">
   <div class="select-wrap">
+    <div class="select-label">Partido</div>
     <select id="selProvincia">
-      <option value="">Seleccioná una zona / partido</option>
+      <option value="">Todos los partidos</option>
     </select>
   </div>
   <div class="select-wrap">
+    <div class="select-label">Localidad</div>
     <select id="selBarrio" disabled>
       <option value="">Seleccioná una localidad</option>
     </select>
@@ -496,8 +620,8 @@
   <div id="map"></div>
   <div class="panel" id="panel">
     <div class="panel-header" id="panelHeader">
-      <div class="panel-title" id="panelTitle">Seleccioná una zona</div>
-      <div class="panel-subtitle" id="panelSubtitle">Elegí un partido y localidad para ver las inmobiliarias activas</div>
+      <div class="panel-title" id="panelTitle">Bienvenido</div>
+      <div class="panel-subtitle" id="panelSubtitle">Cargando datos...</div>
     </div>
     <div class="panel-search" id="panelSearch" style="display:none">
       <span class="search-icon">⌕</span>
@@ -505,20 +629,16 @@
     </div>
     <div class="panel-body" id="panelBody">
       <div class="empty-state">
-        <div class="empty-icon">🗺️</div>
-        <div class="empty-title">Elegí una zona</div>
-        <div class="empty-desc">Seleccioná un partido del mapa<br>para ver las inmobiliarias activas</div>
+        <div class="empty-icon">⏳</div>
+        <div class="empty-title">Cargando...</div>
       </div>
     </div>
   </div>
 </div>
 
 <script>
-// ── CONFIG ──
 const N8N_ENDPOINT = '/api/datos';
-const GMAPS_KEY    = 'AIzaSyD3TyurpPf8hTBVBNpDwGNDyjZHPIzIIHY8';
 
-// ── STATE ──
 let map, markers = [], infoWindow;
 let raw = null;
 let locByProvincia = new Map();
@@ -526,7 +646,6 @@ let inmosByBarrio  = new Map();
 let currentInmos   = [];
 const geoCache     = {};
 
-// ── DOM ──
 const selProv     = document.getElementById('selProvincia');
 const selBarrio   = document.getElementById('selBarrio');
 const btnClear    = document.getElementById('btnClear');
@@ -537,13 +656,11 @@ const panelSearch = document.getElementById('panelSearch');
 const searchInput = document.getElementById('searchInput');
 const loadingBar  = document.getElementById('loadingBar');
 
-// ── HELPERS ──
 const loading = on => loadingBar.classList.toggle('active', on);
 
 function daysAgo(dateStr) {
   if (!dateStr) return 999;
-  const d = new Date(dateStr);
-  return Math.floor((Date.now() - d) / 86400000);
+  return Math.floor((Date.now() - new Date(dateStr)) / 86400000);
 }
 
 function tagFromDays(days) {
@@ -552,17 +669,45 @@ function tagFromDays(days) {
   return '<span class="inmo-tag old">Inactiva +90d</span>';
 }
 
+function dotClassFromDays(days) {
+  if (days <= 30) return 'recent';
+  if (days <= 90) return 'mid';
+  return 'old';
+}
+
 function formatDate(s) {
   if (!s) return '—';
   const [y,m,d] = s.split('-');
   return `${d}/${m}/${y}`;
 }
 
+function formatDaysAgo(days) {
+  if (days === 0) return 'hoy';
+  if (days === 1) return 'hace 1d';
+  if (days < 30)  return `hace ${days}d`;
+  const months = Math.floor(days / 30);
+  return `hace ${months}m`;
+}
+
+// ── ANIMATED COUNTER ──
+function animateCounter(el, target, duration = 1200, delay = 0) {
+  if (!el) return;
+  setTimeout(() => {
+    const start = performance.now();
+    const update = (time) => {
+      const p = Math.min((time - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - p, 3);
+      el.textContent = Math.round(eased * target).toLocaleString('es-AR');
+      if (p < 1) requestAnimationFrame(update);
+    };
+    requestAnimationFrame(update);
+  }, delay);
+}
+
 // ── GEOCODE ──
 async function geocode(address) {
   const key = address.toLowerCase().trim();
   if (geoCache[key]) return geoCache[key];
-
   return new Promise((resolve, reject) => {
     const geocoder = new google.maps.Geocoder();
     geocoder.geocode({ address, region: 'ar' }, (results, status) => {
@@ -572,11 +717,126 @@ async function geocode(address) {
         geoCache[key] = coords;
         resolve(coords);
       } else {
-        reject(new Error('Geocode failed: ' + status + ' for ' + address));
+        reject(new Error('Geocode failed: ' + status));
       }
     });
   });
 }
+
+// ── WELCOME PANEL ──
+function renderWelcomePanel() {
+  const totalInmos  = raw.inmobiliarias.length;
+  const activas30   = raw.inmobiliarias.filter(i => daysAgo(i.Fecha_Ultima_Venta) <= 30).length;
+  const totalZonas  = locByProvincia.size;
+
+  // Top partidos by count
+  const partidoCount = new Map();
+  for (const [prov, barrios] of locByProvincia) {
+    let count = 0;
+    for (const b of barrios) count += (inmosByBarrio.get(b.nombre.toUpperCase()) || []).length;
+    if (count > 0) partidoCount.set(prov, count);
+  }
+  const topPartidos = [...partidoCount.entries()].sort((a,b) => b[1]-a[1]).slice(0, 5);
+  const maxCount = topPartidos[0]?.[1] || 1;
+
+  // Recent activity
+  const recent = [...raw.inmobiliarias]
+    .filter(i => i.Fecha_Ultima_Venta)
+    .sort((a,b) => new Date(b.Fecha_Ultima_Venta) - new Date(a.Fecha_Ultima_Venta))
+    .slice(0, 6);
+
+  panelTitle.textContent  = 'Panorama general';
+  panelSub.textContent    = 'Seleccioná una zona o usá los accesos rápidos';
+
+  const html = `
+    <div class="panel-fade-in">
+      <div class="live-badge">
+        <span class="live-dot"></span>
+        En vivo · Actualizado hoy
+      </div>
+
+      <div class="welcome-stats-grid">
+        <div class="ws-card">
+          <div class="ws-val" id="wc-inmos">0</div>
+          <div class="ws-label">Inmobiliarias</div>
+        </div>
+        <div class="ws-card">
+          <div class="ws-val" id="wc-activas">0</div>
+          <div class="ws-label">Activas 30d</div>
+        </div>
+        <div class="ws-card">
+          <div class="ws-val" id="wc-zonas">0</div>
+          <div class="ws-label">Partidos</div>
+        </div>
+      </div>
+
+      <div class="section-title">Acceso rápido</div>
+      <div class="quick-chips">
+        ${topPartidos.map(([prov], i) =>
+          `<button class="chip${i === 0 ? ' caba' : ''}" onclick="quickSelect('${prov.replace(/'/g,"\\'")}')">
+            ${i === 0 ? '★ ' : ''}${prov}
+          </button>`
+        ).join('')}
+      </div>
+
+      <div class="section-title">Top zonas</div>
+      <div class="top-zonas-list">
+        ${topPartidos.map(([prov, count], i) => `
+          <div class="top-zona-item" onclick="quickSelect('${prov.replace(/'/g,"\\'")}')">
+            <div class="tz-rank">${i+1}</div>
+            <div class="tz-name">${prov}</div>
+            <div class="tz-bar-wrap">
+              <div class="tz-bar" id="tzbar-${i}" style="width:0%"></div>
+            </div>
+            <div class="tz-count">${count}</div>
+          </div>
+        `).join('')}
+      </div>
+
+      <div class="section-title">Actividad reciente</div>
+      <div class="activity-list">
+        ${recent.map(i => {
+          const days = daysAgo(i.Fecha_Ultima_Venta);
+          return `<div class="activity-item">
+            <div class="ai-left">
+              <div style="display:flex;align-items:center;gap:6px">
+                <div class="ai-dot ${dotClassFromDays(days)}"></div>
+                <div class="ai-name">${i.Account_Name}</div>
+              </div>
+              <div class="ai-city">${i.Billing_City || '—'}</div>
+            </div>
+            <div class="ai-days">${formatDaysAgo(days)}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+  `;
+
+  panelBody.innerHTML = html;
+
+  // Animate counters
+  animateCounter(document.getElementById('wc-inmos'),   totalInmos,  1200, 100);
+  animateCounter(document.getElementById('wc-activas'), activas30,   1000, 250);
+  animateCounter(document.getElementById('wc-zonas'),   totalZonas,   800, 400);
+
+  // Animate header stats too
+  animateCounter(document.getElementById('total-inmos'), totalInmos, 1400, 100);
+  animateCounter(document.getElementById('total-zonas'), totalZonas, 1000, 300);
+
+  // Animate bars with delay
+  topPartidos.forEach(([,count], i) => {
+    setTimeout(() => {
+      const bar = document.getElementById(`tzbar-${i}`);
+      if (bar) bar.style.width = Math.round(count / maxCount * 100) + '%';
+    }, 600 + i * 80);
+  });
+}
+
+// ── QUICK SELECT ──
+window.quickSelect = function(prov) {
+  selProv.value = prov;
+  selProv.dispatchEvent(new Event('change'));
+};
 
 // ── DATA LOAD ──
 async function loadData() {
@@ -586,7 +846,6 @@ async function loadData() {
     if (!res.ok) throw new Error('HTTP ' + res.status);
     raw = await res.json();
 
-    // Index localidades by provincia
     for (const l of raw.localidades) {
       const prov = (l.provincia || '').toUpperCase().trim();
       const nom  = (l.nombre   || '').toUpperCase().trim();
@@ -595,7 +854,6 @@ async function loadData() {
       locByProvincia.get(prov).push(l);
     }
 
-    // Index inmobiliarias by barrio (Billing_City)
     for (const i of raw.inmobiliarias) {
       const city = (i.Billing_City || '').toUpperCase().trim();
       if (!city) continue;
@@ -603,7 +861,6 @@ async function loadData() {
       inmosByBarrio.get(city).push(i);
     }
 
-    // Populate provincia selector
     const provs = [...locByProvincia.keys()].sort();
     for (const p of provs) {
       const o = document.createElement('option');
@@ -611,15 +868,14 @@ async function loadData() {
       selProv.appendChild(o);
     }
 
-    // Stats
-    document.getElementById('total-inmos').textContent = raw.inmobiliarias.length.toLocaleString('es-AR');
-    document.getElementById('total-zonas').textContent  = provs.length;
+    renderWelcomePanel();
 
   } catch (e) {
-    console.error('Error cargando datos:', e);
+    console.error('Error:', e);
+    panelTitle.textContent = 'Error';
     panelBody.innerHTML = `<div class="empty-state">
       <div class="empty-icon">⚠️</div>
-      <div class="empty-title">Error cargando datos</div>
+      <div class="empty-title">No se pudieron cargar los datos</div>
       <div class="empty-desc">${e.message}</div>
     </div>`;
   }
@@ -633,19 +889,13 @@ function clearMarkers() {
   if (infoWindow) infoWindow.close();
 }
 
-// ── RENDER PANEL ──
+// ── RENDER PANEL (zona seleccionada) ──
 function renderPanel(barrio, loca) {
-  const list = (inmosByBarrio.get(barrio.toUpperCase()) || []);
+  const list = inmosByBarrio.get(barrio.toUpperCase()) || [];
   currentInmos = list;
 
-  const lastDate = list.map(i => i.Fecha_Ultima_Venta).filter(Boolean).sort().reverse()[0];
-  const days     = daysAgo(lastDate);
-
-  // Header
   panelTitle.textContent = loca.nombre;
-  panelSub.textContent = `${loca.provincia} · ${list.length} inmobiliaria${list.length !== 1 ? 's' : ''}`;
-
-  // Search
+  panelSub.textContent   = `${loca.provincia} · ${list.length} inmobiliaria${list.length !== 1 ? 's' : ''}`;
   panelSearch.style.display = list.length > 5 ? 'block' : 'none';
   searchInput.value = '';
 
@@ -654,7 +904,7 @@ function renderPanel(barrio, loca) {
 
 function renderCards(list) {
   if (!list.length) {
-    panelBody.innerHTML = `<div class="empty-state">
+    panelBody.innerHTML = `<div class="empty-state panel-fade-in">
       <div class="empty-icon">🏠</div>
       <div class="empty-title">Sin inmobiliarias registradas</div>
       <div class="empty-desc">No hay inmobiliarias activas en esta localidad</div>
@@ -662,34 +912,35 @@ function renderCards(list) {
     return;
   }
 
-  // Summary
-  const lastDate = list.map(i => i.Fecha_Ultima_Venta).filter(Boolean).sort().reverse()[0];
-  const activas  = list.filter(i => daysAgo(i.Fecha_Ultima_Venta) <= 30).length;
+  const activas     = list.filter(i => daysAgo(i.Fecha_Ultima_Venta) <= 30).length;
   const comerciales = [...new Set(list.map(i => i.Comercial_GarantiaYa).filter(Boolean))].length;
 
-  let html = `<div class="zona-summary">
-    <div class="zona-name">${list.length} inmobiliarias</div>
-    <div class="zona-stats">
-      <div class="zona-stat">
-        <div class="zona-stat-val">${activas}</div>
-        <div class="zona-stat-label">Activas (30d)</div>
+  let html = `<div class="panel-fade-in">
+    <div class="zona-summary">
+      <div class="zona-name">${list.length} inmobiliarias</div>
+      <div class="zona-stats">
+        <div class="zona-stat">
+          <div class="zona-stat-val">${activas}</div>
+          <div class="zona-stat-label">Activas (30d)</div>
+        </div>
+        <div class="zona-stat">
+          <div class="zona-stat-val">${comerciales}</div>
+          <div class="zona-stat-label">Comerciales</div>
+        </div>
       </div>
-      <div class="zona-stat">
-        <div class="zona-stat-val">${comerciales}</div>
-        <div class="zona-stat-label">Comerciales</div>
-      </div>
-    </div>
-  </div>`;
+    </div>`;
 
   for (const i of list) {
     const days = daysAgo(i.Fecha_Ultima_Venta);
     const tag  = tagFromDays(days);
-    const web  = i.Website ? `<a href="${i.Website.startsWith('http') ? i.Website : 'https://'+i.Website}" target="_blank">🌐 Web</a>` : '';
+    const web  = i.Website
+      ? `<a href="${i.Website.startsWith('http') ? i.Website : 'https://'+i.Website}" target="_blank">🌐 Web</a>`
+      : '';
 
     html += `<div class="inmo-card" onclick="focusInmo('${i.id}')">
       <div class="inmo-name">${i.Account_Name}</div>
       ${i.Comercial_GarantiaYa ? `<div class="inmo-row">👤 <span class="val">${i.Comercial_GarantiaYa}</span></div>` : ''}
-      ${i.Billing_Street ? `<div class="inmo-row">📍 <span class="val">${i.Billing_Street}</span></div>` : ''}
+      ${i.Billing_Street       ? `<div class="inmo-row">📍 <span class="val">${i.Billing_Street}</span></div>` : ''}
       ${tag}
       <div class="inmo-footer">
         <div style="display:flex;gap:10px;align-items:center">
@@ -701,10 +952,10 @@ function renderCards(list) {
     </div>`;
   }
 
+  html += '</div>';
   panelBody.innerHTML = html;
 }
 
-// ── FOCUS INMO ──
 window.focusInmo = function(id) {
   const marker = markers.find(m => m._inmoId === id);
   if (marker) {
@@ -714,29 +965,31 @@ window.focusInmo = function(id) {
   }
 };
 
-// ── SEARCH ──
 searchInput.addEventListener('input', () => {
   const q = searchInput.value.toLowerCase().trim();
   if (!q) { renderCards(currentInmos); return; }
-  const filtered = currentInmos.filter(i =>
+  renderCards(currentInmos.filter(i =>
     i.Account_Name.toLowerCase().includes(q) ||
     (i.Comercial_GarantiaYa || '').toLowerCase().includes(q) ||
     (i.Billing_Street || '').toLowerCase().includes(q)
-  );
-  renderCards(filtered);
+  ));
 });
 
-// ── PROVINCIA CHANGE ──
+// ── PARTIDO CHANGE ──
 selProv.addEventListener('change', async () => {
   selBarrio.innerHTML = '<option value="">Seleccioná una localidad</option>';
   selBarrio.disabled  = true;
   clearMarkers();
   panelSearch.style.display = 'none';
-  panelTitle.textContent = 'Seleccioná una localidad';
-  panelSub.textContent   = '';
-  panelBody.innerHTML = `<div class="empty-state"><div class="empty-icon">📍</div><div class="empty-title">Elegí una localidad</div></div>`;
 
-  if (!selProv.value) return;
+  if (!selProv.value) {
+    renderWelcomePanel();
+    return;
+  }
+
+  panelTitle.textContent = selProv.value;
+  panelSub.textContent   = 'Cargando localidades...';
+  panelBody.innerHTML    = `<div class="empty-state"><div class="empty-icon">📍</div><div class="empty-title">Elegí una localidad</div></div>`;
 
   const barrios = locByProvincia.get(selProv.value) || [];
   for (const b of barrios) {
@@ -746,8 +999,8 @@ selProv.addEventListener('change', async () => {
     selBarrio.appendChild(o);
   }
   selBarrio.disabled = false;
+  panelSub.textContent = `${barrios.length} localidades disponibles`;
 
-  // Place markers for all barrios of this provincia
   loading(true);
   const bounds = new google.maps.LatLngBounds();
 
@@ -757,9 +1010,8 @@ selProv.addEventListener('change', async () => {
       const inmos  = inmosByBarrio.get(b.nombre.toUpperCase()) || [];
       if (!inmos.length) continue;
 
-      const latLng = new google.maps.LatLng(coords.lat, coords.lng);
-
-      const marker = new google.maps.Marker({
+      const latLng  = new google.maps.LatLng(coords.lat, coords.lng);
+      const marker  = new google.maps.Marker({
         position: latLng,
         map,
         title: b.nombre,
@@ -773,9 +1025,7 @@ selProv.addEventListener('change', async () => {
         }
       });
 
-      marker._inmoId = null;
-      marker._loca   = b;
-
+      marker._loca = b;
       marker.addListener('click', () => {
         if (infoWindow) infoWindow.close();
         const last = inmos.map(i => i.Fecha_Ultima_Venta).filter(Boolean).sort().reverse()[0];
@@ -789,16 +1039,12 @@ selProv.addEventListener('change', async () => {
         });
         infoWindow.open(map, marker);
         renderPanel(b.nombre, b);
-
-        // Update barrio selector
         selBarrio.value = b.nombre.toUpperCase();
       });
 
       markers.push(marker);
       bounds.extend(latLng);
-    } catch (e) {
-      // geocode failed silently
-    }
+    } catch (e) { /* geocode silently */ }
   }
 
   if (markers.length) {
@@ -808,7 +1054,7 @@ selProv.addEventListener('change', async () => {
   loading(false);
 });
 
-// ── BARRIO CHANGE ──
+// ── LOCALIDAD CHANGE ──
 selBarrio.addEventListener('change', async () => {
   if (!selBarrio.value) return;
   const barrios = locByProvincia.get(selProv.value) || [];
@@ -817,7 +1063,6 @@ selBarrio.addEventListener('change', async () => {
 
   renderPanel(selBarrio.value, loca);
 
-  // Pan to marker
   try {
     const coords = await geocode(`${loca.nombre}, ${loca.provincia}, Buenos Aires, Argentina`);
     map.panTo(new google.maps.LatLng(coords.lat, coords.lng));
@@ -829,39 +1074,33 @@ selBarrio.addEventListener('change', async () => {
 btnClear.addEventListener('click', () => {
   selProv.value = '';
   selBarrio.innerHTML = '<option value="">Seleccioná una localidad</option>';
-  selBarrio.disabled = true;
+  selBarrio.disabled  = true;
   clearMarkers();
   panelSearch.style.display = 'none';
-  panelTitle.textContent = 'Seleccioná una zona';
-  panelSub.textContent   = 'Elegí un partido y localidad para ver las inmobiliarias activas';
-  panelBody.innerHTML = `<div class="empty-state">
-    <div class="empty-icon">🗺️</div>
-    <div class="empty-title">Elegí una zona</div>
-    <div class="empty-desc">Seleccioná un partido del mapa<br>para ver las inmobiliarias activas</div>
-  </div>`;
+  if (raw) renderWelcomePanel();
   map.setCenter({ lat: -34.62, lng: -58.65 });
   map.setZoom(10);
 });
 
-// ── GOOGLE MAPS INIT ──
+// ── MAP INIT ──
 window.initMap = async function() {
   map = new google.maps.Map(document.getElementById('map'), {
     center: { lat: -34.62, lng: -58.65 },
     zoom: 10,
     styles: [
-      { elementType: 'geometry',        stylers: [{ color: '#1a1a24' }] },
-      { elementType: 'labels.text.fill',stylers: [{ color: '#8888a0' }] },
+      { elementType: 'geometry',         stylers: [{ color: '#1a1a24' }] },
+      { elementType: 'labels.text.fill', stylers: [{ color: '#8888a0' }] },
       { elementType: 'labels.text.stroke',stylers:[{ color: '#13131a' }] },
-      { featureType: 'administrative',  elementType: 'geometry.stroke', stylers: [{ color: '#2d2d42' }] },
+      { featureType: 'administrative',   elementType: 'geometry.stroke', stylers: [{ color: '#2d2d42' }] },
       { featureType: 'administrative.land_parcel', elementType: 'labels', stylers: [{ visibility: 'off' }] },
-      { featureType: 'poi',             stylers: [{ visibility: 'off' }] },
-      { featureType: 'road',            elementType: 'geometry', stylers: [{ color: '#24243a' }] },
-      { featureType: 'road.arterial',   elementType: 'geometry', stylers: [{ color: '#2a2a40' }] },
-      { featureType: 'road.highway',    elementType: 'geometry', stylers: [{ color: '#30304a' }] },
-      { featureType: 'road.highway',    elementType: 'labels',   stylers: [{ visibility: 'off' }] },
-      { featureType: 'transit',         stylers: [{ visibility: 'off' }] },
-      { featureType: 'water',           elementType: 'geometry', stylers: [{ color: '#0a0a14' }] },
-      { featureType: 'water',           elementType: 'labels.text.fill', stylers: [{ color: '#3d3d58' }] },
+      { featureType: 'poi',              stylers: [{ visibility: 'off' }] },
+      { featureType: 'road',             elementType: 'geometry', stylers: [{ color: '#24243a' }] },
+      { featureType: 'road.arterial',    elementType: 'geometry', stylers: [{ color: '#2a2a40' }] },
+      { featureType: 'road.highway',     elementType: 'geometry', stylers: [{ color: '#30304a' }] },
+      { featureType: 'road.highway',     elementType: 'labels',   stylers: [{ visibility: 'off' }] },
+      { featureType: 'transit',          stylers: [{ visibility: 'off' }] },
+      { featureType: 'water',            elementType: 'geometry', stylers: [{ color: '#0a0a14' }] },
+      { featureType: 'water',            elementType: 'labels.text.fill', stylers: [{ color: '#3d3d58' }] },
     ],
     disableDefaultUI: false,
     zoomControl: true,
