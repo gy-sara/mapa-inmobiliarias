@@ -74,7 +74,11 @@ function geocodeAddress(address) {
 }
 
 function initMap() {
-  if (!mapEl.value || !window.google) return
+  console.log('[MapView] initMap called', { hasMapEl: !!mapEl.value, hasGoogle: !!window.google, mapElSize: mapEl.value ? `${mapEl.value.offsetWidth}x${mapEl.value.offsetHeight}` : 'N/A' })
+  if (!mapEl.value || !window.google) {
+    console.error('[MapView] initMap aborted - missing mapEl or google')
+    return
+  }
   map = new google.maps.Map(mapEl.value, {
     center: { lat: -34.62, lng: -58.65 },
     zoom: 10,
