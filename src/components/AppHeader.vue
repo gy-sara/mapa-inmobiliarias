@@ -3,6 +3,7 @@
     <div class="logo">
       <img class="logo-img" :src="LOGO_URL" alt="GarantíaYa" />
       GarantíaYa <span class="logo-sub">/ Mapa</span>
+      <span class="version-badge">v1.1</span>
     </div>
 
     <div class="global-search">
@@ -134,6 +135,19 @@ header {
   font-size: 13px;
   color: var(--text-muted);
   font-weight: 400;
+}
+
+.version-badge {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--accent2);
+  background: rgba(91,106,247,.12);
+  border: 1px solid rgba(91,106,247,.25);
+  border-radius: 6px;
+  padding: 2px 6px;
+  letter-spacing: .04em;
+  margin-left: 2px;
 }
 
 .global-search {

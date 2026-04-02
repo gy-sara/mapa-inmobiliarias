@@ -3,7 +3,7 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from 'vue'
+import { ref, watch, onMounted, nextTick } from 'vue'
 import { activityScore, tempColor } from '../utils/helpers.js'
 
 const GMAPS_KEY = 'AIzaSyD3TyurpPf8hTBVBNpDwGNDyjZHPIzIHY8'
@@ -39,7 +39,8 @@ const props = defineProps({
   inmosByBarrio: { type: Object, default: () => new Map() },
   mode: { type: String, default: 'markers' },
   selectedProvincia: { type: String, default: '' },
-  geoCache: { type: Object, default: () => ({}) }
+  geoCache: { type: Object, default: () => ({}) },
+  mapsReady: { type: Boolean, default: false }
 })
 
 const emit = defineEmits(['zone-click'])
@@ -260,10 +261,17 @@ watch(() => props.mode, (m) => {
   else if (props.selectedProvincia) placeMarkersForProvincia(props.selectedProvincia)
 })
 
+// Watch mapsReady prop as primary trigger
+watch(() => props.mapsReady, async (ready) => {
+  if (ready && mapEl.value && !map) {
+    await nextTick()
+    initMap()
+  }
+})
+
 onMounted(() => {
-  // initMap is called by App.vue after Maps script resolves.
-  // Fallback for hot-reload in dev (Maps already loaded).
-  if (window.google?.maps) initMap()
+  // Fallback for hot-reload in dev (Maps already loaded)
+  if (window.google?.maps && mapEl.value) initMap()
 })
 </script>
 

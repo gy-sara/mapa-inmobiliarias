@@ -27,6 +27,7 @@
       :mode="mode"
       :selected-provincia="selectedProvincia"
       :geo-cache="geoCache"
+      :maps-ready="mapsReady"
       @zone-click="handleZoneClick"
     />
     <SidePanel
@@ -44,7 +45,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import LoadingOverlay from './components/LoadingOverlay.vue'
 import AppHeader from './components/AppHeader.vue'
 import AppControls from './components/AppControls.vue'
@@ -57,6 +58,7 @@ const GMAPS_KEY = 'AIzaSyD3TyurpPf8hTBVBNpDwGNDyjZHPIzIHY8'
 // State
 const showOverlay = ref(true)
 const loaderMsg = ref('Conectando con los datos...')
+const mapsReady = ref(false)
 const isLoading = ref(false)
 const raw = ref(null)
 const locByProvincia = ref(new Map())
@@ -395,6 +397,8 @@ function stopMsgRotation() {
 onMounted(async () => {
   startMsgRotation()
   await Promise.all([loadGoogleMaps(), loadData()])
+  mapsReady.value = true
+  await nextTick()
   mapViewRef.value?.initMap()
   stopMsgRotation()
   showOverlay.value = false
