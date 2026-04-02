@@ -756,6 +756,10 @@ async function loadData() {
     renderWelcomePanel();
     hideLoader();
 
+    // Auto-select CABA
+    const cabaKey = [...locByProvincia.keys()].find(k => k.includes('AUTÓNOMA') || k.includes('AUTONOMA') || k === 'CABA');
+    if (cabaKey) setTimeout(() => quickSelect(cabaKey), 400);
+
     // If geocache is mostly full, unlock heat/temp immediately
     const totalZones = [...locByProvincia.values()].flat()
       .filter(b => (inmosByBarrio.get(b.nombre.toUpperCase()) || []).length > 0).length;
