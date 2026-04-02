@@ -395,6 +395,7 @@ function stopMsgRotation() {
 onMounted(async () => {
   startMsgRotation()
   await Promise.all([loadGoogleMaps(), loadData()])
+  mapViewRef.value?.initMap()
   stopMsgRotation()
   showOverlay.value = false
 

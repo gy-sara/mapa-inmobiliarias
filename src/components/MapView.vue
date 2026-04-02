@@ -239,7 +239,7 @@ async function panToZone(loca) {
   }
 }
 
-defineExpose({ panToZone })
+defineExpose({ panToZone, initMap })
 
 watch(() => props.selectedProvincia, async (prov) => {
   clearMarkers()
@@ -261,11 +261,9 @@ watch(() => props.mode, (m) => {
 })
 
 onMounted(() => {
-  if (window.google && window.google.maps) {
-    initMap()
-  } else {
-    window.__gmInit = () => initMap()
-  }
+  // initMap is called by App.vue after Maps script resolves.
+  // Fallback for hot-reload in dev (Maps already loaded).
+  if (window.google?.maps) initMap()
 })
 </script>
 
