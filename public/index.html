@@ -1,11 +1,882 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mapa Inmobiliarias</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Mapa Inmobiliarias · GarantíaYa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0f13;
+    --surface: #18181f;
+    --surface2: #1e1e28;
+    --border: rgba(255,255,255,0.07);
+    --accent: #5b6af7;
+    --accent2: #7c8bf9;
+    --gold: #e8c97e;
+    --text: #f0f0f5;
+    --text-muted: #8888a0;
+    --success: #4ecb8a;
+    --danger: #f06565;
+    --panel-w: 380px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── HEADER ── */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    height: 56px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    z-index: 10;
+  }
+
+  .logo {
+    font-family: 'DM Serif Display', serif;
+    font-size: 18px;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .logo-dot {
+    width: 8px; height: 8px;
+    background: var(--accent);
+    border-radius: 50%;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%,100% { opacity:1; transform:scale(1); }
+    50% { opacity:.5; transform:scale(1.4); }
+  }
+
+  .header-stats {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+  }
+  .stat {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+  }
+  .stat-val {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--accent2);
+    line-height: 1;
+  }
+  .stat-label {
+    font-size: 10px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    margin-top: 2px;
+  }
+
+  /* ── CONTROLS BAR ── */
+  .controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 24px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    z-index: 10;
+  }
+
+  .select-wrap {
+    position: relative;
+    flex: 1;
+    max-width: 260px;
+  }
+  .select-wrap::after {
+    content: '▾';
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    pointer-events: none;
+    font-size: 11px;
+  }
+  select {
+    width: 100%;
+    padding: 9px 32px 9px 14px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    appearance: none;
+    cursor: pointer;
+    transition: border-color .15s;
+    outline: none;
+  }
+  select:hover { border-color: rgba(255,255,255,0.15); }
+  select:focus { border-color: var(--accent); }
+  select:disabled { opacity: .4; cursor: default; }
+
+  .btn-clear {
+    padding: 9px 16px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text-muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all .15s;
+    white-space: nowrap;
+  }
+  .btn-clear:hover { border-color: var(--accent); color: var(--accent2); }
+
+  .loading-bar {
+    height: 2px;
+    background: var(--surface);
+    flex-shrink: 0;
+    overflow: hidden;
+    position: relative;
+  }
+  .loading-bar.active::after {
+    content: '';
+    position: absolute;
+    left: -40%;
+    top: 0; bottom: 0;
+    width: 40%;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    animation: loadbar 1s ease-in-out infinite;
+  }
+  @keyframes loadbar { to { left: 100%; } }
+
+  /* ── MAIN LAYOUT ── */
+  .layout {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* ── MAP ── */
+  #map {
+    flex: 1;
+    height: 100%;
+  }
+
+  /* Google Maps style overrides */
+  .gm-style .gm-style-iw-c {
+    background: var(--surface2) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 10px !important;
+    padding: 0 !important;
+    box-shadow: 0 8px 32px rgba(0,0,0,.5) !important;
+  }
+  .gm-style .gm-style-iw-d { overflow: hidden !important; }
+  .gm-style .gm-style-iw-tc::after { background: var(--surface2) !important; }
+  .gm-style button.gm-ui-hover-effect span { background-color: var(--text-muted) !important; }
+
+  .info-popup {
+    padding: 14px 16px;
+    min-width: 220px;
+    max-width: 280px;
+  }
+  .info-popup h3 {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+    line-height: 1.3;
+  }
+  .info-popup .info-meta {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+  .info-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    background: rgba(91,106,247,.15);
+    border: 1px solid rgba(91,106,247,.3);
+    border-radius: 20px;
+    font-size: 11px;
+    color: var(--accent2);
+    margin-bottom: 8px;
+  }
+  .info-popup .btn-view {
+    display: block;
+    width: 100%;
+    padding: 7px;
+    background: var(--accent);
+    border: none;
+    border-radius: 6px;
+    color: white;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    margin-top: 8px;
+    transition: background .15s;
+  }
+  .info-popup .btn-view:hover { background: var(--accent2); }
+
+  /* ── SIDE PANEL ── */
+  .panel {
+    width: var(--panel-w);
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    flex-shrink: 0;
+    transform: translateX(0);
+    transition: transform .3s ease;
+  }
+  .panel.hidden { transform: translateX(100%); width: 0; border: none; }
+
+  .panel-header {
+    padding: 16px 20px 12px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .panel-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 17px;
+    color: var(--text);
+    line-height: 1.2;
+  }
+  .panel-subtitle {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 3px;
+  }
+
+  .panel-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--surface2) transparent;
+  }
+  .panel-body::-webkit-scrollbar { width: 4px; }
+  .panel-body::-webkit-scrollbar-thumb { background: var(--surface2); border-radius: 4px; }
+
+  /* ── INMO CARD ── */
+  .inmo-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all .15s;
+    position: relative;
+    overflow: hidden;
+  }
+  .inmo-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--accent);
+    opacity: 0;
+    transition: opacity .15s;
+  }
+  .inmo-card:hover { border-color: rgba(255,255,255,0.13); transform: translateY(-1px); }
+  .inmo-card:hover::before { opacity: 1; }
+
+  .inmo-name {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text);
+    line-height: 1.4;
+    margin-bottom: 5px;
+  }
+  .inmo-row {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 3px;
+    line-height: 1.3;
+  }
+  .inmo-row span { color: var(--text-muted); }
+  .inmo-row .val { color: var(--text); }
+  .inmo-tag {
+    display: inline-block;
+    padding: 2px 7px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 500;
+  }
+  .inmo-tag.recent { background: rgba(78,203,138,.12); color: var(--success); }
+  .inmo-tag.old { background: rgba(240,101,101,.10); color: var(--danger); }
+  .inmo-tag.mid { background: rgba(232,201,126,.10); color: var(--gold); }
+
+  .inmo-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+  }
+  .inmo-footer a {
+    font-size: 11px;
+    color: var(--accent2);
+    text-decoration: none;
+    font-weight: 500;
+  }
+  .inmo-footer a:hover { text-decoration: underline; }
+  .inmo-footer .date-badge {
+    font-size: 10px;
+    color: var(--text-muted);
+  }
+
+  /* ── EMPTY STATE ── */
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    text-align: center;
+    padding: 40px 20px;
+    gap: 12px;
+  }
+  .empty-icon {
+    font-size: 36px;
+    opacity: .3;
+  }
+  .empty-title {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text);
+  }
+  .empty-desc {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  /* ── ZONA SUMMARY ── */
+  .zona-summary {
+    background: linear-gradient(135deg, rgba(91,106,247,.1), rgba(91,106,247,.04));
+    border: 1px solid rgba(91,106,247,.2);
+    border-radius: 10px;
+    padding: 14px;
+    margin-bottom: 12px;
+  }
+  .zona-name {
+    font-family: 'DM Serif Display', serif;
+    font-size: 16px;
+    color: var(--text);
+    margin-bottom: 10px;
+  }
+  .zona-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .zona-stat {
+    background: rgba(255,255,255,.04);
+    border-radius: 7px;
+    padding: 8px 10px;
+  }
+  .zona-stat-val {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--accent2);
+    line-height: 1;
+  }
+  .zona-stat-label {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-top: 3px;
+  }
+
+  /* Search box in panel */
+  .panel-search {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    position: relative;
+  }
+  .panel-search input {
+    width: 100%;
+    padding: 8px 12px 8px 32px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    outline: none;
+    transition: border-color .15s;
+  }
+  .panel-search input:focus { border-color: var(--accent); }
+  .panel-search input::placeholder { color: var(--text-muted); }
+  .search-icon {
+    position: absolute;
+    left: 22px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: 13px;
+    pointer-events: none;
+  }
+
+  @media (max-width: 768px) {
+    :root { --panel-w: 100vw; }
+    .layout { flex-direction: column; }
+    #map { flex: none; height: 50vh; }
+    .panel { width: 100%; border-left: none; border-top: 1px solid var(--border); }
+    .header-stats { display: none; }
+  }
+</style>
 </head>
 <body>
-  <!-- placeholder -->
+
+<header>
+  <div class="logo">
+    <div class="logo-dot"></div>
+    GarantíaYa <span style="color:var(--text-muted);font-size:13px;font-weight:300">/ Mapa Comercial</span>
+  </div>
+  <div class="header-stats">
+    <div class="stat">
+      <div class="stat-val" id="total-inmos">—</div>
+      <div class="stat-label">Inmobiliarias</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val" id="total-zonas">—</div>
+      <div class="stat-label">Zonas</div>
+    </div>
+  </div>
+</header>
+
+<div class="controls">
+  <div class="select-wrap">
+    <select id="selProvincia">
+      <option value="">Seleccioná una zona / partido</option>
+    </select>
+  </div>
+  <div class="select-wrap">
+    <select id="selBarrio" disabled>
+      <option value="">Seleccioná una localidad</option>
+    </select>
+  </div>
+  <button class="btn-clear" id="btnClear">✕ Limpiar</button>
+</div>
+
+<div class="loading-bar" id="loadingBar"></div>
+
+<div class="layout">
+  <div id="map"></div>
+  <div class="panel" id="panel">
+    <div class="panel-header" id="panelHeader">
+      <div class="panel-title" id="panelTitle">Seleccioná una zona</div>
+      <div class="panel-subtitle" id="panelSubtitle">Elegí un partido y localidad para ver las inmobiliarias activas</div>
+    </div>
+    <div class="panel-search" id="panelSearch" style="display:none">
+      <span class="search-icon">⌕</span>
+      <input type="text" id="searchInput" placeholder="Buscar inmobiliaria...">
+    </div>
+    <div class="panel-body" id="panelBody">
+      <div class="empty-state">
+        <div class="empty-icon">🗺️</div>
+        <div class="empty-title">Elegí una zona</div>
+        <div class="empty-desc">Seleccioná un partido del mapa<br>para ver las inmobiliarias activas</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── CONFIG ──
+const N8N_ENDPOINT = 'https://app.garantiaya.com.ar/webhook/mapa-inmobiliarias';
+const GMAPS_KEY    = 'AIzaSyD3TyurpPf8hTBVBNpDwGNDyjZHPIzIIHY8';
+
+// ── STATE ──
+let map, markers = [], infoWindow;
+let raw = null;
+let locByProvincia = new Map();
+let inmosByBarrio  = new Map();
+let currentInmos   = [];
+const geoCache     = {};
+
+// ── DOM ──
+const selProv     = document.getElementById('selProvincia');
+const selBarrio   = document.getElementById('selBarrio');
+const btnClear    = document.getElementById('btnClear');
+const panelBody   = document.getElementById('panelBody');
+const panelTitle  = document.getElementById('panelTitle');
+const panelSub    = document.getElementById('panelSubtitle');
+const panelSearch = document.getElementById('panelSearch');
+const searchInput = document.getElementById('searchInput');
+const loadingBar  = document.getElementById('loadingBar');
+
+// ── HELPERS ──
+const loading = on => loadingBar.classList.toggle('active', on);
+
+function daysAgo(dateStr) {
+  if (!dateStr) return 999;
+  const d = new Date(dateStr);
+  return Math.floor((Date.now() - d) / 86400000);
+}
+
+function tagFromDays(days) {
+  if (days <= 30)  return '<span class="inmo-tag recent">Activa</span>';
+  if (days <= 90)  return '<span class="inmo-tag mid">Reciente</span>';
+  return '<span class="inmo-tag old">Inactiva +90d</span>';
+}
+
+function formatDate(s) {
+  if (!s) return '—';
+  const [y,m,d] = s.split('-');
+  return `${d}/${m}/${y}`;
+}
+
+// ── GEOCODE ──
+async function geocode(address) {
+  const key = address.toLowerCase().trim();
+  if (geoCache[key]) return geoCache[key];
+
+  return new Promise((resolve, reject) => {
+    const geocoder = new google.maps.Geocoder();
+    geocoder.geocode({ address, region: 'ar' }, (results, status) => {
+      if (status === 'OK' && results[0]) {
+        const loc = results[0].geometry.location;
+        const coords = { lat: loc.lat(), lng: loc.lng() };
+        geoCache[key] = coords;
+        resolve(coords);
+      } else {
+        reject(new Error('Geocode failed: ' + status + ' for ' + address));
+      }
+    });
+  });
+}
+
+// ── DATA LOAD ──
+async function loadData() {
+  loading(true);
+  try {
+    const res = await fetch(N8N_ENDPOINT);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    raw = await res.json();
+
+    // Index localidades by provincia
+    for (const l of raw.localidades) {
+      const prov = (l.provincia || '').toUpperCase().trim();
+      const nom  = (l.nombre   || '').toUpperCase().trim();
+      if (!prov || !nom) continue;
+      if (!locByProvincia.has(prov)) locByProvincia.set(prov, []);
+      locByProvincia.get(prov).push(l);
+    }
+
+    // Index inmobiliarias by barrio (Billing_City)
+    for (const i of raw.inmobiliarias) {
+      const city = (i.Billing_City || '').toUpperCase().trim();
+      if (!city) continue;
+      if (!inmosByBarrio.has(city)) inmosByBarrio.set(city, []);
+      inmosByBarrio.get(city).push(i);
+    }
+
+    // Populate provincia selector
+    const provs = [...locByProvincia.keys()].sort();
+    for (const p of provs) {
+      const o = document.createElement('option');
+      o.value = p; o.textContent = p;
+      selProv.appendChild(o);
+    }
+
+    // Stats
+    document.getElementById('total-inmos').textContent = raw.inmobiliarias.length.toLocaleString('es-AR');
+    document.getElementById('total-zonas').textContent  = provs.length;
+
+  } catch (e) {
+    console.error('Error cargando datos:', e);
+    panelBody.innerHTML = `<div class="empty-state">
+      <div class="empty-icon">⚠️</div>
+      <div class="empty-title">Error cargando datos</div>
+      <div class="empty-desc">${e.message}</div>
+    </div>`;
+  }
+  loading(false);
+}
+
+// ── CLEAR MARKERS ──
+function clearMarkers() {
+  markers.forEach(m => m.setMap(null));
+  markers = [];
+  if (infoWindow) infoWindow.close();
+}
+
+// ── RENDER PANEL ──
+function renderPanel(barrio, loca) {
+  const list = (inmosByBarrio.get(barrio.toUpperCase()) || []);
+  currentInmos = list;
+
+  const lastDate = list.map(i => i.Fecha_Ultima_Venta).filter(Boolean).sort().reverse()[0];
+  const days     = daysAgo(lastDate);
+
+  // Header
+  panelTitle.textContent = loca.nombre;
+  panelSub.textContent = `${loca.provincia} · ${list.length} inmobiliaria${list.length !== 1 ? 's' : ''}`;
+
+  // Search
+  panelSearch.style.display = list.length > 5 ? 'block' : 'none';
+  searchInput.value = '';
+
+  renderCards(list);
+}
+
+function renderCards(list) {
+  if (!list.length) {
+    panelBody.innerHTML = `<div class="empty-state">
+      <div class="empty-icon">🏠</div>
+      <div class="empty-title">Sin inmobiliarias registradas</div>
+      <div class="empty-desc">No hay inmobiliarias activas en esta localidad</div>
+    </div>`;
+    return;
+  }
+
+  // Summary
+  const lastDate = list.map(i => i.Fecha_Ultima_Venta).filter(Boolean).sort().reverse()[0];
+  const activas  = list.filter(i => daysAgo(i.Fecha_Ultima_Venta) <= 30).length;
+  const comerciales = [...new Set(list.map(i => i.Comercial_GarantiaYa).filter(Boolean))].length;
+
+  let html = `<div class="zona-summary">
+    <div class="zona-name">${list.length} inmobiliarias</div>
+    <div class="zona-stats">
+      <div class="zona-stat">
+        <div class="zona-stat-val">${activas}</div>
+        <div class="zona-stat-label">Activas (30d)</div>
+      </div>
+      <div class="zona-stat">
+        <div class="zona-stat-val">${comerciales}</div>
+        <div class="zona-stat-label">Comerciales</div>
+      </div>
+    </div>
+  </div>`;
+
+  for (const i of list) {
+    const days = daysAgo(i.Fecha_Ultima_Venta);
+    const tag  = tagFromDays(days);
+    const web  = i.Website ? `<a href="${i.Website.startsWith('http') ? i.Website : 'https://'+i.Website}" target="_blank">🌐 Web</a>` : '';
+
+    html += `<div class="inmo-card" onclick="focusInmo('${i.id}')">
+      <div class="inmo-name">${i.Account_Name}</div>
+      ${i.Comercial_GarantiaYa ? `<div class="inmo-row">👤 <span class="val">${i.Comercial_GarantiaYa}</span></div>` : ''}
+      ${i.Billing_Street ? `<div class="inmo-row">📍 <span class="val">${i.Billing_Street}</span></div>` : ''}
+      ${tag}
+      <div class="inmo-footer">
+        <div style="display:flex;gap:10px;align-items:center">
+          <a href="${i.url}" target="_blank">Ver CRM →</a>
+          ${web}
+        </div>
+        <div class="date-badge">Última venta: ${formatDate(i.Fecha_Ultima_Venta)}</div>
+      </div>
+    </div>`;
+  }
+
+  panelBody.innerHTML = html;
+}
+
+// ── FOCUS INMO ──
+window.focusInmo = function(id) {
+  const marker = markers.find(m => m._inmoId === id);
+  if (marker) {
+    map.panTo(marker.getPosition());
+    map.setZoom(16);
+    google.maps.event.trigger(marker, 'click');
+  }
+};
+
+// ── SEARCH ──
+searchInput.addEventListener('input', () => {
+  const q = searchInput.value.toLowerCase().trim();
+  if (!q) { renderCards(currentInmos); return; }
+  const filtered = currentInmos.filter(i =>
+    i.Account_Name.toLowerCase().includes(q) ||
+    (i.Comercial_GarantiaYa || '').toLowerCase().includes(q) ||
+    (i.Billing_Street || '').toLowerCase().includes(q)
+  );
+  renderCards(filtered);
+});
+
+// ── PROVINCIA CHANGE ──
+selProv.addEventListener('change', async () => {
+  selBarrio.innerHTML = '<option value="">Seleccioná una localidad</option>';
+  selBarrio.disabled  = true;
+  clearMarkers();
+  panelSearch.style.display = 'none';
+  panelTitle.textContent = 'Seleccioná una localidad';
+  panelSub.textContent   = '';
+  panelBody.innerHTML = `<div class="empty-state"><div class="empty-icon">📍</div><div class="empty-title">Elegí una localidad</div></div>`;
+
+  if (!selProv.value) return;
+
+  const barrios = locByProvincia.get(selProv.value) || [];
+  for (const b of barrios) {
+    const o = document.createElement('option');
+    o.value = b.nombre.toUpperCase();
+    o.textContent = b.nombre;
+    selBarrio.appendChild(o);
+  }
+  selBarrio.disabled = false;
+
+  // Place markers for all barrios of this provincia
+  loading(true);
+  const bounds = new google.maps.LatLngBounds();
+
+  for (const b of barrios) {
+    try {
+      const coords = await geocode(`${b.nombre}, ${b.provincia}, Buenos Aires, Argentina`);
+      const inmos  = inmosByBarrio.get(b.nombre.toUpperCase()) || [];
+      if (!inmos.length) continue;
+
+      const latLng = new google.maps.LatLng(coords.lat, coords.lng);
+
+      const marker = new google.maps.Marker({
+        position: latLng,
+        map,
+        title: b.nombre,
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          scale: 7 + Math.min(inmos.length * .5, 8),
+          fillColor: inmos.length >= 10 ? '#5b6af7' : inmos.length >= 5 ? '#7c8bf9' : '#e8c97e',
+          fillOpacity: .9,
+          strokeColor: '#ffffff',
+          strokeWeight: 1.5,
+        }
+      });
+
+      marker._inmoId = null;
+      marker._loca   = b;
+
+      marker.addListener('click', () => {
+        if (infoWindow) infoWindow.close();
+        const last = inmos.map(i => i.Fecha_Ultima_Venta).filter(Boolean).sort().reverse()[0];
+        infoWindow = new google.maps.InfoWindow({
+          content: `<div class="info-popup">
+            <h3>${b.nombre}</h3>
+            <div class="info-meta">${b.provincia}</div>
+            <div class="info-badge">🏠 ${inmos.length} inmobiliaria${inmos.length !== 1 ? 's' : ''}</div>
+            ${last ? `<div style="font-size:11px;color:#8888a0">Última venta: ${formatDate(last)}</div>` : ''}
+          </div>`
+        });
+        infoWindow.open(map, marker);
+        renderPanel(b.nombre, b);
+
+        // Update barrio selector
+        selBarrio.value = b.nombre.toUpperCase();
+      });
+
+      markers.push(marker);
+      bounds.extend(latLng);
+    } catch (e) {
+      // geocode failed silently
+    }
+  }
+
+  if (markers.length) {
+    map.fitBounds(bounds, { top: 60, right: 60, bottom: 60, left: 60 });
+    if (map.getZoom() > 14) map.setZoom(14);
+  }
+  loading(false);
+});
+
+// ── BARRIO CHANGE ──
+selBarrio.addEventListener('change', async () => {
+  if (!selBarrio.value) return;
+  const barrios = locByProvincia.get(selProv.value) || [];
+  const loca    = barrios.find(b => b.nombre.toUpperCase() === selBarrio.value);
+  if (!loca) return;
+
+  renderPanel(selBarrio.value, loca);
+
+  // Pan to marker
+  try {
+    const coords = await geocode(`${loca.nombre}, ${loca.provincia}, Buenos Aires, Argentina`);
+    map.panTo(new google.maps.LatLng(coords.lat, coords.lng));
+    map.setZoom(14);
+  } catch(e) {}
+});
+
+// ── CLEAR ──
+btnClear.addEventListener('click', () => {
+  selProv.value = '';
+  selBarrio.innerHTML = '<option value="">Seleccioná una localidad</option>';
+  selBarrio.disabled = true;
+  clearMarkers();
+  panelSearch.style.display = 'none';
+  panelTitle.textContent = 'Seleccioná una zona';
+  panelSub.textContent   = 'Elegí un partido y localidad para ver las inmobiliarias activas';
+  panelBody.innerHTML = `<div class="empty-state">
+    <div class="empty-icon">🗺️</div>
+    <div class="empty-title">Elegí una zona</div>
+    <div class="empty-desc">Seleccioná un partido del mapa<br>para ver las inmobiliarias activas</div>
+  </div>`;
+  map.setCenter({ lat: -34.62, lng: -58.65 });
+  map.setZoom(10);
+});
+
+// ── GOOGLE MAPS INIT ──
+window.initMap = async function() {
+  map = new google.maps.Map(document.getElementById('map'), {
+    center: { lat: -34.62, lng: -58.65 },
+    zoom: 10,
+    styles: [
+      { elementType: 'geometry',        stylers: [{ color: '#1a1a24' }] },
+      { elementType: 'labels.text.fill',stylers: [{ color: '#8888a0' }] },
+      { elementType: 'labels.text.stroke',stylers:[{ color: '#13131a' }] },
+      { featureType: 'administrative',  elementType: 'geometry.stroke', stylers: [{ color: '#2d2d42' }] },
+      { featureType: 'administrative.land_parcel', elementType: 'labels', stylers: [{ visibility: 'off' }] },
+      { featureType: 'poi',             stylers: [{ visibility: 'off' }] },
+      { featureType: 'road',            elementType: 'geometry', stylers: [{ color: '#24243a' }] },
+      { featureType: 'road.arterial',   elementType: 'geometry', stylers: [{ color: '#2a2a40' }] },
+      { featureType: 'road.highway',    elementType: 'geometry', stylers: [{ color: '#30304a' }] },
+      { featureType: 'road.highway',    elementType: 'labels',   stylers: [{ visibility: 'off' }] },
+      { featureType: 'transit',         stylers: [{ visibility: 'off' }] },
+      { featureType: 'water',           elementType: 'geometry', stylers: [{ color: '#0a0a14' }] },
+      { featureType: 'water',           elementType: 'labels.text.fill', stylers: [{ color: '#3d3d58' }] },
+    ],
+    disableDefaultUI: false,
+    zoomControl: true,
+    mapTypeControl: false,
+    streetViewControl: false,
+    fullscreenControl: false,
+  });
+
+  await loadData();
+};
+</script>
+
+<script async
+  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD3TyurpPf8hTBVBNpDwGNDyjZHPIzIHY8&callback=initMap&loading=async">
+</script>
+
 </body>
 </html>
